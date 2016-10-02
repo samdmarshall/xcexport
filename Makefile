@@ -28,6 +28,11 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# exporting the necessary paths so the the builds will work correctly.
+GEM_EXEC_PATH = $(shell gem environment gempath)
+PYTHON_EXEC_PATH = $(shell python -c "import site; print(site.getusersitepackages())")
+export PATH := $(PATH):$(GEM_EXEC_PATH):$(PYTHON_EXEC_PATH)
+
 # Variables
 
 # path to installation record that gets written when performing:
