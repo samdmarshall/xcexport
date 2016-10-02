@@ -85,6 +85,8 @@ EXIT := $(shell command -v $(EXIT_CMD) 2> /dev/null)
 TPUT := $(shell command -v $(TPUT_CMD) 2> /dev/null)
 TR := $(shell command -v $(TR_CMD) 2> /dev/null)
 PYLINT := $(shell command -v $(PYLINT_CMD) 2> /dev/null)
+BREW = $(shell command -v $(BREW_CMD) 2> /dev/null)
+PYENV = $(shell command -v $(PYENV_CMD) 2> /dev/null)
 
 SYSTEM := $(shell $(UNAME) -s)
 ifeq ($(SYSTEM),Darwin)
@@ -119,6 +121,7 @@ check:
 	$(call checkfor,$(FIND_CMD))
 	$(call checkfor,$(XARGS_CMD))
 	$(call checkfor,$(RM_CMD))
+	$(call checkfor,$(BREW_CMD))
 	$(call checkfor,$(PYTHON2_CMD))
 	$(call checkfor,$(PYTHON3_CMD))
 	$(call checkfor,$(PIP_CMD))
@@ -133,6 +136,7 @@ check:
 
 pipinstall = @$(PIP) install $1 $(USER_FLAG)
 geminstall = @$(GEM) install $1 $(USER_FLAG)
+brewinstall = @$(BREW) install $1
 
 install-deps:
 	$(call checkfor,$(PYTHON2_CMD))
@@ -145,6 +149,8 @@ install-deps:
 	@$(DISPLAY_SEPARATOR)
 	$(call checkfor,$(GEM_CMD))
 	$(call geminstall,$(DANGER_CMD))
+	@$(DISPLAY_SEPARATOR)
+	$(call brewinstall,$(PYENV_CMD))
 	@$(DISPLAY_SEPARATOR)
 
 # ---
