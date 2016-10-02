@@ -14,7 +14,7 @@ machine:
 dependencies:
   override:
     - make install-deps
-    - pyenv local 2.7.10 3.5.0
+    - pyenv local 2.7.10 3.5.1
 
 test:
   override:
