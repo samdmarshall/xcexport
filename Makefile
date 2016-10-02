@@ -53,12 +53,15 @@ TOUCH_CMD := touch
 CP_CMD := cp
 CAT_CMD := cat
 PIP_CMD := pip
+PIP3_CMD := pip3
 CCTREPORTER_CMD := codeclimate-test-reporter
 UNAME_CMD := uname
 EXIT_CMD := exit
 TPUT_CMD := tput
 TR_CMD := tr
 PYLINT_CMD := pylint
+BREW_CMD := brew
+PYENV_CMD := pyenv
 
 TOX_PYENV := tox-pyenv
 
@@ -79,6 +82,7 @@ TOUCH := $(shell command -v $(TOUCH_CMD) 2> /dev/null)
 CP := $(shell command -v $(CP_CMD) 2> /dev/null)
 CAT := $(shell command -v $(CAT_CMD) 2> /dev/null)
 PIP := $(shell command -v $(PIP_CMD) 2> /dev/null)
+PIP3 := $(shell command -v $(PIP3_CMD) 2> /dev/null)
 CCTREPORTER := $(shell command -v $(CCTREPORTER_CMD) 2> /dev/null)
 UNAME := $(shell command -v $(UNAME_CMD) 2> /dev/null)
 EXIT := $(shell command -v $(EXIT_CMD) 2> /dev/null)
@@ -137,6 +141,9 @@ check:
 pipinstall = @$(PIP) install $1 $(USER_FLAG)
 geminstall = @$(GEM) install $1 $(USER_FLAG)
 brewinstall = @$(BREW) install $1
+pipthreeinstall = @$(PIP3_CMD) install $1
+
+pyenv_exec = @$(PYENV_CMD) $1 $2
 
 install-deps:
 	$(call checkfor,$(PYTHON2_CMD))
@@ -151,6 +158,11 @@ install-deps:
 	$(call geminstall,$(DANGER_CMD))
 	@$(DISPLAY_SEPARATOR)
 	$(call brewinstall,$(PYENV_CMD))
+	$(call brewinstall,$(PYTHON3_CMD))
+	$(call checkfor,$(PIP3_CMD))
+	$(call pipthreeinstall,-r requirements.txt)
+	@$(DISPLAY_SEPARATOR)
+	$(call pyenv_exec, install, 3.5.1)
 	@$(DISPLAY_SEPARATOR)
 
 # ---
