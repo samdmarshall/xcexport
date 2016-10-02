@@ -162,6 +162,7 @@ install-deps:
 	$(call checkfor,$(PIP3_CMD))
 	$(call pipthreeinstall,-r requirements.txt)
 	@$(DISPLAY_SEPARATOR)
+	$(call pyenv_exec, install, 2.7.10)
 	$(call pyenv_exec, install, 3.5.1)
 	@$(DISPLAY_SEPARATOR)
 
