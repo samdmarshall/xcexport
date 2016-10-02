@@ -29,8 +29,7 @@
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # exporting the necessary paths so the the builds will work correctly.
-GEM_EXEC_PATH = $(shell gem environment gempath)
-export PATH := $(PATH):$(GEM_EXEC_PATH)
+export PATH := $(PATH):/Users/distiller/.gem/ruby/2.3.0/bin
 
 # Variables
 
