@@ -29,10 +29,8 @@
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
-import sys
-import string
-import itertools
 import unittest
+
 import xcexport
 
 test_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tests')
