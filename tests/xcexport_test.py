@@ -41,6 +41,7 @@ class xcexportTestCases(unittest.TestCase):
 
     def test_config_load(self):
         print('\n')
+        os.environ['ACTION'] = 'build'
         args = [os.path.join(test_directory, 'xcexport.ini'), '--verbose', '--debug']
         xcexport.main(args)
 

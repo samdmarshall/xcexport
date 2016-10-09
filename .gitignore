@@ -2,3 +2,6 @@
 /dist
 /xcexport.egg-info
 /installed_files.txt
+/.tox
+/.coverage
+__pycache__
