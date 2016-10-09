@@ -34,13 +34,6 @@ from pbPlist          import pbPlist
 from ..Helpers        import xcrun
 from ..Helpers.Logger import Logger
 
-if sys.version_info >= (3, 0):
-    def getObjectForUnicodeKey(dictionary, key):
-        return dictionary.get(key)
-else:
-    def getObjectForUnicodeKey(dictionary, key):
-        return dictionary.get(str(key), dictionary.get(unicode(key)))
-
 class Environment(object):
 
     def __init__(self):
@@ -49,12 +42,6 @@ class Environment(object):
 
     def __findSpecsOptionsWithName(self, option_name):
         results = list()
-        for spec in self.specs:
-            options_list = getObjectForUnicodeKey(spec, 'Options')
-            for option in options_list:
-                name = getObjectForUnicodeKey(option, 'Name')
-                if option_name == name:
-                    results.append(option)
         return results
 
     def __loadXcodeSpecFiles(self):
@@ -63,6 +50,7 @@ class Environment(object):
         search_extension = 'spec'
         found_specs = list()
         if os.path.exists(search_path) is False:
+            print(search_path)
             Logger.write().error('Unable to find an installation of Xcode! Please make sure that `xcode-select` is setup correctly!')
         else:
             found_specs = [os.path.join(root, name) for root, _, files in os.walk(search_path, followlinks=False) for name in files if name.endswith(search_extension)]
@@ -77,28 +65,23 @@ class Environment(object):
                     specs_in_file.extend(contents)
                 else:
                     specs_in_file.append(spec_file_contents.root.nativeType())
-                build_setting_specs = [spec for spec in specs_in_file if (spec.get('Options') or spec.get(u'Options')) is not None]
-                for spec in build_setting_specs:
-                    Logger.write().debug('Loading specification: "%s"...' % spec.get('Identifier', spec.get(u'Identifier')))
-                if len(build_setting_specs):
-                    self.specs.extend(build_setting_specs)
+                for spec in specs_in_file:
+                    Logger.write().debug('Loading specification: "%s"...' % spec.get('Identifier'))
+                self.specs.extend(specs_in_file)
 
-    def compilerFlags(self):
+    def compilerFlags(self, environment_variable):
         results = list()
         Logger.write().info('Resolving compiler flags...')
         environment_variables = os.environ
         for env_var in environment_variables:
             found_options = self.__findSpecsOptionsWithName(env_var)
-            if len(found_options):
-                print(found_options)
-        return results
+            options_with_flags = [option for option in found_options if option.get('CommandLineFlag') or option.get('CommandLineArgs')]
+            if len(options_with_flags):
+                results.extend(options_with_flags)
+        os.environ[environment_variable] = ' '.join(results)
 
-    def linkerFlags(self):
+    def linkerFlags(self, environment_variable):
         results = list()
         Logger.write().info('Resolving linker flags...')
         environment_variables = os.environ
-        for env_var in environment_variables:
-            found_options = self.__findSpecsOptionsWithName(env_var)
-            if len(found_options):
-                print(found_options)
-        return results
+        os.environ[environment_variable] = ' '.join(results)

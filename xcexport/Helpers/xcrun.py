@@ -31,11 +31,13 @@
 import os
 import sys
 import struct
+import codecs
 import hashlib
 import subprocess
 import CoreFoundation
 from .Logger    import Logger
 from .Switch    import Switch
+from .          import Executor
 
 def hashStringForPath(path):
     """
@@ -161,21 +163,10 @@ def resolvePathFromLocation(location_string, path, base_path):
             break
     return path_string
 
-def make_subprocess_call(call_args, shell_state=False):
-    error = 0
-    output = ''
-    try:
-        output = subprocess.check_output(call_args, shell=shell_state)
-        error = 0
-    except subprocess.CalledProcessError as exception: # pragma: no cover
-        output = str(exception.output)
-        error = exception.returncode
-    return (output, error)
-
 def make_xcrun_with_args(args_tuple):
-    xcrun_result = make_subprocess_call((('xcrun',) + args_tuple))
+    xcrun_result = Executor.Invoke((('xcrun',) + args_tuple))
     if xcrun_result[1] != 0: # pragma: no cover
-        Logger.write().error('[xcrun]: Error in exec!')
+        Logger.write().error('Error in exec!')
         sys.exit()
     xcrun_output = str(xcrun_result[0]).rstrip('\n')
     return xcrun_output
@@ -184,9 +175,9 @@ def resolve_sdk_path(sdk_name):
     return make_xcrun_with_args(('--show-sdk-path', '--sdk', sdk_name))
 
 def resolve_developer_path():
-    xcrun_result = make_subprocess_call(('xcode-select', '-p'))
+    xcrun_result = Executor.Invoke(('xcode-select', '-p'))
     if xcrun_result[1] != 0: # pragma: no cover
-        Logger.write().error('[xcrun]: Please run Xcode first!')
+        Logger.write().error('Please run Xcode first!')
         sys.exit()
     developer_path = str(xcrun_result[0]).rstrip('\n')
     return developer_path

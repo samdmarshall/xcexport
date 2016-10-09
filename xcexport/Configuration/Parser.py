@@ -30,10 +30,7 @@
 
 import os
 import sys
-if sys.version_info >= (3, 0):
-    import configparser as ConfigParserCompat
-else:
-    import ConfigParser as ConfigParserCompat
+import configparser
 from .                           import Constants
 from ..Helpers.OrderedDictionary import OrderedDictionary
 from ..Helpers.Logger            import Logger
@@ -44,7 +41,7 @@ class Parser(object):
         self.config_file_path = os.path.normpath(file_path)
         self.contents = None
         if os.path.exists(self.config_file_path) is True:
-            self.contents = ConfigParserCompat.ConfigParser(dict_type=OrderedDictionary)
+            self.contents = configparser.ConfigParser(dict_type=OrderedDictionary)
             self.contents.read(self.config_file_path)
         if self.contents is not None:
             if self.validate() is True:
@@ -62,18 +59,19 @@ class Parser(object):
 
     def validate(self):
         is_valid = False
-        has_valid_sections = set(self._sections()) == set({Constants.BuildSettings, Constants.Exportables, Constants.Runnables})
+        has_valid_sections = set(self._sections()) == set({Constants.BuildSettings, Constants.Exports, Constants.Actions})
         if has_valid_sections is True:
             has_valid_build_settings = set(self._options(Constants.BuildSettings)) == set({Constants.BuildSettings_export})
             if has_valid_build_settings is False:
                 Logger.write().error('Configuration file at path "%s" has an invalid "%s" defintion!' % (self.config_file_path, Constants.BuildSettings))
-            has_valid_exportables = set(self._options(Constants.Exportables)) == set({Constants.Exportables_compiler, Constants.Exportables_linker})
-            if has_valid_exportables is False:
-                Logger.write().error('Configuration file at path "%s" has an invalid "%s" defintion!' % (self.config_file_path, Constants.Exportables))
-            has_valid_runnables = set(self._options(Constants.Runnables)) == set({Constants.Runnables_tool})
-            if has_valid_runnables is False:
-                Logger.write().error('Configuration file at path "%s" has an invalid "%s" defintion!' % (self.config_file_path, Constants.Runnables))
-            is_valid = has_valid_build_settings and has_valid_exportables and has_valid_runnables
+            has_valid_exports = set(self._options(Constants.Exports)) == set({Constants.Exports_compiler, Constants.Exports_linker})
+            if has_valid_exports is False:
+                Logger.write().error('Configuration file at path "%s" has an invalid "%s" defintion!' % (self.config_file_path, Constants.Exports))
+            actions_subset = set({Constants.Actions_build, Constants.Actions_install, Constants.Actions_clean, Constants.Actions_installhdrs, Constants.Actions_analyze, Constants.Actions_copyhdrs, Constants.Actions_copyrsrcs, Constants.Actions_installdebugonly, Constants.Actions_installprofileonly, Constants.Actions_installdebugprofileonly, Constants.Actions_installsrc, Constants.Actions_installrsrcs})
+            has_valid_actions = set(self._options(Constants.Actions)).issubset(actions_subset)
+            if has_valid_actions is False:
+                Logger.write().error('Configuration file at path "%s" has an invalid "%s" defintion!' % (self.config_file_path, Constants.Actions))
+            is_valid = has_valid_build_settings and has_valid_exports and has_valid_actions
         else:
             Logger.write().error('Configuration file at path "%s" does not have the correct headers!' % self.config_file_path)
         return is_valid
@@ -81,8 +79,8 @@ class Parser(object):
     def buildSettings(self):
         return dict(self.contents.items(Constants.BuildSettings))
 
-    def exportables(self):
-        return dict(self.contents.items(Constants.Exportables))
+    def exports(self):
+        return dict(self.contents.items(Constants.Exports))
 
-    def runnables(self):
-        return dict(self.contents.items(Constants.Runnables))
+    def actions(self):
+        return dict(self.contents.items(Constants.Actions))

@@ -165,7 +165,6 @@ install-deps:
 	$(call checkfor,$(PIP3_CMD))
 	$(call pipthreeinstall,-r requirements.txt)
 	@$(DISPLAY_SEPARATOR)
-	$(call pyenv_exec, install, 2.7.10)
 	$(call pyenv_exec, install, 3.5.1)
 	@$(DISPLAY_SEPARATOR)
 
@@ -203,13 +202,7 @@ clean: check
 	
 # ---
 
-build2: clean
-	$(PYTHON2) ./setup.py install $(USER_FLAG) --record $(INSTALLED_FILES_RECORD)
-	@$(DISPLAY_SEPARATOR)
-	
-# ---
-
-build3: clean
+build: clean
 	$(PYTHON3) ./setup.py install --record $(INSTALLED_FILES_RECORD)
 	@$(DISPLAY_SEPARATOR)
 
@@ -293,4 +286,4 @@ lint: check
 
 # ---
 
-.PHONY: danger lint ci report test build3 build2 clean install-tools install-deps check
+.PHONY: danger lint ci report test build clean install-tools install-deps check

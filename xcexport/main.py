@@ -28,12 +28,16 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import os
 import sys
+import shlex
 import argparse
 from .version              import __version__ as XCEXPORT_VERSION
 from .Helpers.Logger       import Logger
+from .                     import Configuration
 from .Configuration.Parser import Parser
 from .Resolver.Environment import Environment
+from .Helpers              import Executor
 
 # Main
 def main(argv=sys.argv[1:]):
@@ -86,8 +90,23 @@ def main(argv=sys.argv[1:]):
         config_parser = Parser(args.config_file)
 
         working_env = Environment()
-        print(working_env.compilerFlags())
-        print(working_env.linkerFlags())
+
+        working_env.compilerFlags(config_parser.exports().get(Configuration.Constants.Exports_compiler))
+        working_env.linkerFlags(config_parser.exports().get(Configuration.Constants.Exports_linker))
+
+        if os.environ.get('ACTION') is None:
+            Logger.write().error('no ACTION variable defined in the inherited environment, please ensure that xcexport is run from within Xcode!')
+            sys.exit()
+
+        execution_action = os.environ['ACTION']
+        if execution_action == '':
+            execution_action = 'build'
+
+        command = shlex.split(config_parser.actions()[execution_action])
+        if os.fork() == 0:  
+            os.execvp(command[0], command)
+        else:
+            os.wait()
 
 if __name__ == "__main__": # pragma: no cover
     main()
