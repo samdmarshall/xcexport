@@ -98,7 +98,6 @@ def main(argv=sys.argv[1:]):
 
         export_cflags_variable = config_parser.exports()[Configuration.Constants.Exports_compiler]
         working_env.compilerFlags(export_cflags_variable)
-        print(os.environ.get(export_cflags_variable))
 
         export_ldflags_variable = config_parser.exports()[Configuration.Constants.Exports_linker]
         working_env.linkerFlags(export_ldflags_variable)

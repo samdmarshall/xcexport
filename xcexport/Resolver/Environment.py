@@ -29,11 +29,13 @@
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import re
 import sys
 from ..Helpers        import xcrun
 from ..Helpers.Logger import Logger
 from ..XCSpec         import xcspec_helper
 from ..XCSpec         import XCSpecCompiler
+from .EnvVariable     import EnvVariable
 
 class Environment(object):
 
@@ -65,7 +67,6 @@ class Environment(object):
         search_extension = 'spec'
         found_specs = list()
         if os.path.exists(search_path) is False:
-            print(search_path)
             Logger.write().error('Unable to find an installation of Xcode! Please make sure that `xcode-select` is setup correctly!')
         else:
             found_specs = [os.path.join(root, name) for root, _, files in os.walk(search_path, followlinks=False) for name in files if name.endswith(search_extension)]
@@ -86,7 +87,9 @@ class Environment(object):
             if len(options_with_flags):
                 results.extend(options_with_flags)
         for item in results:
-            print(item)
+            variable = EnvVariable(item)
+            print(variable.name+': '+variable.commandLineFlag(self)+'|')
+            
         # os.environ[environment_variable] = ' '.join(results)
 
     def linkerFlags(self, environment_variable):
@@ -94,3 +97,50 @@ class Environment(object):
         Logger.write().info('Resolving linker flags...')
         environment_variables = os.environ
         os.environ[environment_variable] = ' '.join(results)
+
+    def __extractKey(self, key_string):
+        return key_string[2:-1];
+
+    def __findAndSubKey(self, key_name, key_string, lookup_dict):
+        # finding variable keys
+        iter = re.finditer(r'\$[\(|\{]\w*[\)|\}]', key_string);
+        new_string = '';
+        offset = 0
+        for item in iter:
+            # extracting the key name
+            key = self.__extractKey(item.group());
+            # check if the key is found
+            if key in lookup_dict.keys():
+                value = self.valueForKey(key, lookup_dict=lookup_dict);
+                new_string += key_string[offset:item.start()] + value;
+                offset = item.end();
+            else:
+                offset = item.end();
+                if key == 'inherited':
+                    resolved_value = lookup_dict[key_name].inheritedValue();
+                    if resolved_value != None:
+                        resolved_value = resolved_value.value(self, lookup_dict=lookup_dict);
+                    else:
+                        resolved_value = '';
+                    new_string += key_string[offset:item.start()] + resolved_value;
+                    offset = item.end();
+                else:
+                    Logger.write().warn('Substituting empty string for "%s" in "%s"' % (key, key_string));
+                    new_string += key_string[offset:item.start()] + '';
+                    offset = item.end();
+        new_string += key_string[offset:];
+        return new_string;
+    
+    def parseKey(self, key, key_string, lookup_dict=None):
+        if lookup_dict == None:
+            lookup_dict = self.resolvedValues();
+        done_key = False;
+        while done_key == False:
+            temp = self.__findAndSubKey(key, key_string, lookup_dict=lookup_dict);
+            if temp == key_string:
+                done_key = True;
+            key_string = temp;
+        return (True, key_string, len(key_string));
+
+    def resolvedValues(self):
+        return dict(os.environ)
