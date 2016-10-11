@@ -43,6 +43,7 @@ setup(
         'xcexport/Helpers',
         'xcexport/Configuration',
         'xcexport/Resolver',
+        'xcexport/XCSpec',
     ],
     entry_points = { 
         'console_scripts': [ 'xcexport = xcexport:main' ] 

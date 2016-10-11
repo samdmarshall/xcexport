@@ -30,18 +30,33 @@
 
 import os
 import sys
-from pbPlist          import pbPlist
 from ..Helpers        import xcrun
 from ..Helpers.Logger import Logger
+from ..XCSpec         import xcspec_helper
+from ..XCSpec         import XCSpecCompiler
 
 class Environment(object):
 
     def __init__(self):
         self.specs = list()
         self.__loadXcodeSpecFiles()
+        # updating specs to point to each other and form inheritence.
+        for spec_item in self.specs:
+            if spec_item.basedOn is not None:
+                found_specs = [spec for spec in self.specs if spec_item.basedOn == spec.identifier]
+                if len(found_specs) > 0:
+                    spec_item.basedOn = found_specs[0]
+                else:
+                    Logger.write().error('Did not find base spec for identifier "%s"' % spec_item.basedOn)
 
     def __findSpecsOptionsWithName(self, option_name):
         results = list()
+        build_setting_specs = [spec for spec in self.specs if spec.identifier == os.environ.get('GCC_VERSION') and spec.contents.get('IsAbstract') == 'NO']
+        for spec in build_setting_specs:
+            Logger.write().debug('Analyzing spec "%s"...' % spec.identifier)
+            build_setting_options = spec.contents.get('Options')
+            if build_setting_options is not None:
+                results.extend([option for option in build_setting_options if option.get('Name') == option_name])
         return results
 
     def __loadXcodeSpecFiles(self):
@@ -56,17 +71,9 @@ class Environment(object):
             found_specs = [os.path.join(root, name) for root, _, files in os.walk(search_path, followlinks=False) for name in files if name.endswith(search_extension)]
             Logger.write().info('Loading Xcode specification files...')
             for spec_path in found_specs:
-                specs_in_file = list()
-                spec_file_contents = pbPlist.PBPlist(spec_path)
-                Logger.write().debug('Found specification file at:\n> %s' % spec_path)
-                contents_is_dictionary = hasattr(spec_file_contents.root, 'keys')
-                if contents_is_dictionary is False:
-                    contents = [dict(spec) for spec in spec_file_contents.root]
-                    specs_in_file.extend(contents)
-                else:
-                    specs_in_file.append(spec_file_contents.root.nativeType())
+                specs_in_file = xcspec_helper.xcspecLoadFromContentsAtPath(spec_path)
                 for spec in specs_in_file:
-                    Logger.write().debug('Loading specification: "%s"...' % spec.get('Identifier'))
+                    Logger.write().debug('Loading specification: "%s"...' % spec.identifier)
                 self.specs.extend(specs_in_file)
 
     def compilerFlags(self, environment_variable):
@@ -78,7 +85,9 @@ class Environment(object):
             options_with_flags = [option for option in found_options if option.get('CommandLineFlag') or option.get('CommandLineArgs')]
             if len(options_with_flags):
                 results.extend(options_with_flags)
-        os.environ[environment_variable] = ' '.join(results)
+        for item in results:
+            print(item)
+        # os.environ[environment_variable] = ' '.join(results)
 
     def linkerFlags(self, environment_variable):
         results = list()

@@ -89,23 +89,30 @@ def main(argv=sys.argv[1:]):
     if args.config_file is not None:
         config_parser = Parser(args.config_file)
 
+        execution_action = os.environ.get('ACTION')
+        if execution_action is None:
+            Logger.write().error('no ACTION variable defined in the inherited environment, please ensure that xcexport is run from within Xcode!')
+            sys.exit(1)
+
         working_env = Environment()
 
-        working_env.compilerFlags(config_parser.exports().get(Configuration.Constants.Exports_compiler))
-        working_env.linkerFlags(config_parser.exports().get(Configuration.Constants.Exports_linker))
+        export_cflags_variable = config_parser.exports()[Configuration.Constants.Exports_compiler]
+        working_env.compilerFlags(export_cflags_variable)
+        print(os.environ.get(export_cflags_variable))
 
-        if os.environ.get('ACTION') is None:
-            Logger.write().error('no ACTION variable defined in the inherited environment, please ensure that xcexport is run from within Xcode!')
-            sys.exit()
+        export_ldflags_variable = config_parser.exports()[Configuration.Constants.Exports_linker]
+        working_env.linkerFlags(export_ldflags_variable)
 
-        execution_action = os.environ['ACTION']
+        # this is an edge-case with Xcode's build behavior
         if execution_action == '':
             execution_action = 'build'
 
         command = shlex.split(config_parser.actions()[execution_action])
-        if os.fork() == 0:  
+        if os.fork() == 0:
+            # run as child process, so that the output gets reflected in Xcode's log
             os.execvp(command[0], command)
         else:
+            # wait until the child process is done
             os.wait()
 
 if __name__ == "__main__": # pragma: no cover
