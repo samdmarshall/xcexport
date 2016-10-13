@@ -51,7 +51,7 @@ setup(
     test_suite = 'tests.xcexport_test',
     zip_safe = False,
     install_requires = [
-        'pbPlist == 1.0.2',
+        'pbPlist >= 1.0.2',
         'pyobjc-core >= 2.5.1',
         'pyobjc-framework-Cocoa >= 2.5.1',
     ]
