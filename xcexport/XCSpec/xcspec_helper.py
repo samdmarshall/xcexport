@@ -30,13 +30,14 @@
 
 import os
 from pbPlist          import pbPlist
+from pbPlist.pbRoot   import pbRoot
 from ..Helpers.Logger import Logger
 from .xcspec_resolver import xcspec_resolver
 
 def xcspecLoadFromContentsAtPath(spec_path):
     items = list()
     if spec_path.endswith('spec'):
-        contents = pbPlist.PBPlist(spec_path).root;
+        contents = pbPlist.PBPlist(spec_path).root
         Logger.write().debug('Loading spec at path:\n> %s' % spec_path)
         if contents is not None:
             if hasattr(contents, 'keys'):

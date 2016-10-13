@@ -152,7 +152,7 @@ class EnvVariable(object):
             if conditional.evaluate(environment, lookup_dict=lookup_dict) == True:
                 result_value = conditional.value;
                 break;
-        if type(result_value) is str:
+        if isinstance(result_value, str):
             test_result_value = environment.parseKey(self.name, result_value, lookup_dict=lookup_dict);
             if test_result_value[0] == True:
                 result_value = test_result_value[1];
