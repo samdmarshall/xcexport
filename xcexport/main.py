@@ -94,13 +94,13 @@ def main(argv=sys.argv[1:]):
             Logger.write().error('no ACTION variable defined in the inherited environment, please ensure that xcexport is run from within Xcode!')
             sys.exit(1)
 
-        # working_env = Environment()
-        #
-        # export_cflags_variable = config_parser.exports()[Configuration.Constants.Exports_compiler]
-        # working_env.compilerFlags(export_cflags_variable)
-        #
-        # export_ldflags_variable = config_parser.exports()[Configuration.Constants.Exports_linker]
-        # working_env.linkerFlags(export_ldflags_variable)
+        working_env = Environment()
+
+        export_cflags_variable = config_parser.exports()[Configuration.Constants.Exports_compiler]
+        working_env.compilerFlags(export_cflags_variable)
+
+        export_ldflags_variable = config_parser.exports()[Configuration.Constants.Exports_linker]
+        working_env.linkerFlags(export_ldflags_variable)
 
         # this is an edge-case with Xcode's build behavior
         if execution_action == '':
